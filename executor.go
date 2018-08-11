@@ -12,12 +12,12 @@ import (
 )
 
 type ExecuteParams struct {
-	Schema        Schema
-	Root          interface{}
-	AST           *ast.Document
-	OperationName string
-	Args          map[string]interface{}
-
+	Schema               Schema
+	Root                 interface{}
+	AST                  *ast.Document
+	OperationName        string
+	Args                 map[string]interface{}
+	CustomErrorFormatter func(err error) gqlerrors.FormattedError
 	// Context may be provided to pass application-specific per-request
 	// information to resolve functions.
 	Context context.Context
@@ -30,13 +30,19 @@ func Execute(p ExecuteParams) (result *Result) {
 		ctx = context.Background()
 	}
 
+	var errFormatter = gqlerrors.FormatError
+
+	if p.CustomErrorFormatter != nil {
+		errFormatter = p.CustomErrorFormatter
+	}
+
 	resultChannel := make(chan *Result)
 	result = &Result{}
 
 	go func(out chan<- *Result, done <-chan struct{}) {
 		defer func() {
 			if err := recover(); err != nil {
-				result.Errors = append(result.Errors, gqlerrors.FormatError(err.(error)))
+				result.Errors = append(result.Errors, errFormatter(err.(error)))
 			}
 			select {
 			case out <- result:
@@ -44,17 +50,18 @@ func Execute(p ExecuteParams) (result *Result) {
 			}
 		}()
 		exeContext, err := buildExecutionContext(buildExecutionCtxParams{
-			Schema:        p.Schema,
-			Root:          p.Root,
-			AST:           p.AST,
-			OperationName: p.OperationName,
-			Args:          p.Args,
-			Result:        result,
-			Context:       p.Context,
+			Schema:               p.Schema,
+			Root:                 p.Root,
+			AST:                  p.AST,
+			OperationName:        p.OperationName,
+			Args:                 p.Args,
+			Result:               result,
+			Context:              p.Context,
+			CustomErrorFormatter: errFormatter,
 		})
 
 		if err != nil {
-			result.Errors = append(result.Errors, gqlerrors.FormatError(err))
+			result.Errors = append(result.Errors, errFormatter(err))
 			return
 		}
 
@@ -67,7 +74,7 @@ func Execute(p ExecuteParams) (result *Result) {
 
 	select {
 	case <-ctx.Done():
-		result.Errors = append(result.Errors, gqlerrors.FormatError(ctx.Err()))
+		result.Errors = append(result.Errors, errFormatter(ctx.Err()))
 	case r := <-resultChannel:
 		result = r
 	}
@@ -75,23 +82,25 @@ func Execute(p ExecuteParams) (result *Result) {
 }
 
 type buildExecutionCtxParams struct {
-	Schema        Schema
-	Root          interface{}
-	AST           *ast.Document
-	OperationName string
-	Args          map[string]interface{}
-	Result        *Result
-	Context       context.Context
+	Schema               Schema
+	Root                 interface{}
+	AST                  *ast.Document
+	OperationName        string
+	Args                 map[string]interface{}
+	Result               *Result
+	Context              context.Context
+	CustomErrorFormatter func(err error) gqlerrors.FormattedError
 }
 
 type executionContext struct {
-	Schema         Schema
-	Fragments      map[string]ast.Definition
-	Root           interface{}
-	Operation      ast.Definition
-	VariableValues map[string]interface{}
-	Errors         []gqlerrors.FormattedError
-	Context        context.Context
+	Schema               Schema
+	Fragments            map[string]ast.Definition
+	Root                 interface{}
+	Operation            ast.Definition
+	VariableValues       map[string]interface{}
+	Errors               []gqlerrors.FormattedError
+	Context              context.Context
+	CustomErrorFormatter func(err error) gqlerrors.FormattedError
 }
 
 func buildExecutionContext(p buildExecutionCtxParams) (*executionContext, error) {
@@ -137,6 +146,7 @@ func buildExecutionContext(p buildExecutionCtxParams) (*executionContext, error)
 	eCtx.Operation = operation
 	eCtx.VariableValues = variableValues
 	eCtx.Context = p.Context
+	eCtx.CustomErrorFormatter = p.CustomErrorFormatter
 	return eCtx, nil
 }
 
@@ -149,7 +159,7 @@ type executeOperationParams struct {
 func executeOperation(p executeOperationParams) *Result {
 	operationType, err := getOperationRootType(p.ExecutionContext.Schema, p.Operation)
 	if err != nil {
-		return &Result{Errors: gqlerrors.FormatErrors(err)}
+		return &Result{Errors: gqlerrors.FormatErrorsFunc(p.ExecutionContext.CustomErrorFormatter, err)}
 	}
 
 	fields := collectFields(collectFieldsParams{
@@ -464,11 +474,12 @@ type resolveFieldResultState struct {
 
 func handleFieldError(r interface{}, fieldNodes []ast.Node, path *responsePath, returnType Output, eCtx *executionContext) {
 	err := NewLocatedErrorWithPath(r, fieldNodes, path.AsArray())
+
 	// send panic upstream
 	if _, ok := returnType.(*NonNull); ok {
 		panic(err)
 	}
-	eCtx.Errors = append(eCtx.Errors, gqlerrors.FormatError(err))
+	eCtx.Errors = append(eCtx.Errors, eCtx.CustomErrorFormatter(err))
 }
 
 // Resolves the field on the given source object. In particular, this
@@ -564,7 +575,7 @@ func completeValue(eCtx *executionContext, returnType Type, fieldASTs []*ast.Fie
 			resultVal = reflect.ValueOf(result)
 		} else {
 			err := gqlerrors.NewFormattedError("Error resolving func. Expected `func() interface{}` signature")
-			panic(gqlerrors.FormatError(err))
+			panic(eCtx.CustomErrorFormatter(err))
 		}
 	}
 
@@ -578,7 +589,7 @@ func completeValue(eCtx *executionContext, returnType Type, fieldASTs []*ast.Fie
 				FieldASTsToNodeASTs(fieldASTs),
 				path.AsArray(),
 			)
-			panic(gqlerrors.FormatError(err))
+			panic(eCtx.CustomErrorFormatter(err))
 		}
 		return completed
 	}
@@ -621,7 +632,7 @@ func completeValue(eCtx *executionContext, returnType Type, fieldASTs []*ast.Fie
 		`Cannot complete value of unexpected type "%v."`, returnType)
 
 	if err != nil {
-		panic(gqlerrors.FormatError(err))
+		panic(eCtx.CustomErrorFormatter(err))
 	}
 	return nil
 }
@@ -737,7 +748,7 @@ func completeListValue(eCtx *executionContext, returnType *List, fieldASTs []*as
 			"for field %v.%v.", parentTypeName, info.FieldName)
 
 	if err != nil {
-		panic(gqlerrors.FormatError(err))
+		panic(eCtx.CustomErrorFormatter(err))
 	}
 
 	itemType := returnType.OfType
