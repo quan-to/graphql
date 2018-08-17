@@ -3,7 +3,7 @@ package graphql
 import (
 	"sync"
 
-	"github.com/graphql-go/graphql/gqlerrors"
+	"github.com/quan-to/graphql/gqlerrors"
 )
 
 // type Schema interface{}

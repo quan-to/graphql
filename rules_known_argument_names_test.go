@@ -3,9 +3,9 @@ package graphql_test
 import (
 	"testing"
 
-	"github.com/graphql-go/graphql"
-	"github.com/graphql-go/graphql/gqlerrors"
-	"github.com/graphql-go/graphql/testutil"
+	"github.com/quan-to/graphql"
+	"github.com/quan-to/graphql/gqlerrors"
+	"github.com/quan-to/graphql/testutil"
 )
 
 func TestValidate_KnownArgumentNames_SingleArgIsKnown(t *testing.T) {
