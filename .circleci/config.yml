@@ -1,5 +1,5 @@
 defaults: &defaults
-  working_directory: /go/src/github.com/graphql-go/graphql
+  working_directory: /go/src/github.com/quan-to/graphql
   steps:
     - checkout
     - run: go get -v -t -d ./...
@@ -21,7 +21,7 @@ jobs:
     docker:
       - image: circleci/golang:latest
   coveralls:
-    working_directory: /go/src/github.com/graphql-go/graphql
+    working_directory: /go/src/github.com/quan-to/graphql
     docker:
       - image: circleci/golang:latest
     steps:

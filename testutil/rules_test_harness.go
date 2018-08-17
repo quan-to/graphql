@@ -5,11 +5,11 @@ import (
 
 	"reflect"
 
-	"github.com/graphql-go/graphql"
-	"github.com/graphql-go/graphql/gqlerrors"
-	"github.com/graphql-go/graphql/language/location"
-	"github.com/graphql-go/graphql/language/parser"
-	"github.com/graphql-go/graphql/language/source"
+	"github.com/quan-to/graphql"
+	"github.com/quan-to/graphql/gqlerrors"
+	"github.com/quan-to/graphql/language/location"
+	"github.com/quan-to/graphql/language/parser"
+	"github.com/quan-to/graphql/language/source"
 )
 
 var TestSchema *graphql.Schema
