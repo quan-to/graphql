@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/quan-to/graphql/language/ast"
+	"github.com/shopspring/decimal"
 )
 
 // As per the GraphQL Spec, Integers are only treated as valid when a valid
@@ -562,6 +563,145 @@ var DateTime = NewScalar(ScalarConfig{
 		switch valueAST := valueAST.(type) {
 		case *ast.StringValue:
 			return valueAST.Value
+		}
+		return nil
+	},
+})
+
+func coerceDecimal(value interface{}) interface{} {
+	switch value := value.(type) {
+	case bool:
+		if value == true {
+			return decimal.NewFromFloat(1.0)
+		}
+		return decimal.NewFromFloat(0.0)
+	case *bool:
+		if value == nil {
+			return nil
+		}
+		return coerceDecimal(*value)
+	case int:
+		return decimal.NewFromFloat(float64(value))
+	case *int:
+		if value == nil {
+			return nil
+		}
+		return coerceDecimal(*value)
+	case int8:
+		return decimal.NewFromFloat(float64(value))
+	case *int8:
+		if value == nil {
+			return nil
+		}
+		return coerceDecimal(*value)
+	case int16:
+		return decimal.NewFromFloat(float64(value))
+	case *int16:
+		if value == nil {
+			return nil
+		}
+		return coerceDecimal(*value)
+	case int32:
+		return decimal.NewFromFloat(float64(value))
+	case *int32:
+		if value == nil {
+			return nil
+		}
+		return coerceDecimal(*value)
+	case int64:
+		return decimal.NewFromFloat(float64(value))
+	case *int64:
+		if value == nil {
+			return nil
+		}
+		return coerceDecimal(*value)
+	case uint:
+		return decimal.NewFromFloat(float64(value))
+	case *uint:
+		if value == nil {
+			return nil
+		}
+		return coerceDecimal(*value)
+	case uint8:
+		return decimal.NewFromFloat(float64(value))
+	case *uint8:
+		if value == nil {
+			return nil
+		}
+		return coerceDecimal(*value)
+	case uint16:
+		return decimal.NewFromFloat(float64(value))
+	case *uint16:
+		if value == nil {
+			return nil
+		}
+		return coerceDecimal(*value)
+	case uint32:
+		return decimal.NewFromFloat(float64(value))
+	case *uint32:
+		if value == nil {
+			return nil
+		}
+		return coerceDecimal(*value)
+	case uint64:
+		return decimal.NewFromFloat(float64(value))
+	case *uint64:
+		if value == nil {
+			return nil
+		}
+		return coerceDecimal(*value)
+	case float32:
+		return decimal.NewFromFloat32(value)
+	case *float32:
+		if value == nil {
+			return nil
+		}
+		return coerceDecimal(*value)
+	case float64:
+		return decimal.NewFromFloat(value)
+	case *float64:
+		if value == nil {
+			return nil
+		}
+		return coerceDecimal(*value)
+	case string:
+		val, err := decimal.NewFromString(value)
+		if err != nil {
+			return nil
+		}
+		return val
+	case *string:
+		if value == nil {
+			return nil
+		}
+		return coerceDecimal(*value)
+	}
+
+	// If the value cannot be transformed into a decimal, return nil instead of '0.0'
+	// to denote 'no decimal found'
+	return nil
+}
+
+// Decimal is the GraphQL decimal type definition.
+var Decimal = NewScalar(ScalarConfig{
+	Name:        "Decimal",
+	Description: "The `Decimal` scalar type represents arbitrary-precision fixed-point decimal numbers. ",
+	Serialize:   coerceDecimal,
+	ParseValue:  coerceDecimal,
+	ParseLiteral: func(valueAST ast.Value) interface{} {
+		switch valueAST := valueAST.(type) {
+		case *ast.FloatValue:
+			if v, err := decimal.NewFromString(valueAST.Value); err == nil {
+				return v
+			}
+		case *ast.IntValue:
+			if v, err := decimal.NewFromString(valueAST.Value); err == nil {
+				return v
+			}
+		case *ast.DecimalValue:
+			if v, err := decimal.NewFromString(valueAST.Value); err == nil {
+				return v
+			}
 		}
 		return nil
 	},
