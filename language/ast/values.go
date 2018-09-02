@@ -300,3 +300,33 @@ func (f *ObjectField) GetLoc() *Location {
 func (f *ObjectField) GetValue() interface{} {
 	return f.Value
 }
+
+// DecimalValue implements Node, Value
+type DecimalValue struct {
+	Kind  string
+	Loc   *Location
+	Value string
+}
+
+func NewDecimalValue(v *DecimalValue) *DecimalValue {
+	if v == nil {
+		v = &DecimalValue{}
+	}
+	return &DecimalValue{
+		Kind:  kinds.DecimalValue,
+		Loc:   v.Loc,
+		Value: v.Value,
+	}
+}
+
+func (v *DecimalValue) GetKind() string {
+	return v.Kind
+}
+
+func (v *DecimalValue) GetLoc() *Location {
+	return v.Loc
+}
+
+func (v *DecimalValue) GetValue() interface{} {
+	return v.Value
+}

@@ -25,6 +25,7 @@ const (
 	BooleanValue = "BooleanValue"
 	EnumValue    = "EnumValue"
 	ListValue    = "ListValue"
+	DecimalValue = "DecimalValue"
 	ObjectValue  = "ObjectValue"
 	ObjectField  = "ObjectField"
 
