@@ -582,6 +582,7 @@ type FieldResolveFn func(p ResolveParams) (interface{}, error)
 type ResolveInfo struct {
 	FieldName      string
 	FieldASTs      []*ast.Field
+	Path           *ResponsePath
 	ReturnType     Output
 	ParentType     Composite
 	Schema         Schema
@@ -1102,7 +1103,6 @@ func NewInputObject(config InputObjectConfig) *InputObject {
 	gt.PrivateName = config.Name
 	gt.PrivateDescription = config.Description
 	gt.typeConfig = config
-	//gt.fields = gt.defineFieldMap()
 	return gt
 }
 
@@ -1290,21 +1290,21 @@ func assertValidName(name string) error {
 
 }
 
-type responsePath struct {
-	Prev *responsePath
+type ResponsePath struct {
+	Prev *ResponsePath
 	Key  interface{}
 }
 
 // WithKey returns a new responsePath containing the new key.
-func (p *responsePath) WithKey(key interface{}) *responsePath {
-	return &responsePath{
+func (p *ResponsePath) WithKey(key interface{}) *ResponsePath {
+	return &ResponsePath{
 		Prev: p,
 		Key:  key,
 	}
 }
 
 // AsArray returns an array of path keys.
-func (p *responsePath) AsArray() []interface{} {
+func (p *ResponsePath) AsArray() []interface{} {
 	if p == nil {
 		return nil
 	}
