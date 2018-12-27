@@ -97,7 +97,11 @@ func FromCursorToUUID(cursor string) *uuid.UUID {
 
 	id, err := uuid.FromBytes(sid)
 	if err != nil {
-		panic(err)
+		id, err = uuid.FromString(string(sid))
+		if err != nil {
+			panic(err)
+		}
+
 	}
 
 	return &id
