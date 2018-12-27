@@ -5,8 +5,10 @@ import (
 	"github.com/volatiletech/null"
 )
 
-func BoilerFieldResolveFn(p graphql.ResolveParams) (interface{}, error) {
-	return GetBoilerNullableValue(p.Source)
+func GetBoilerField(field *graphql.Field) *graphql.Field {
+	field.Resolve = func(p graphql.ResolveParams) (interface{}, error) { return GetBoilerNullableValue(p.Source) }
+	
+	return field
 }
 
 func GetBoilerNullableValue(v interface{}) (interface{}, error) {
