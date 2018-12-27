@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"encoding/base64"
+	"fmt"
 	"github.com/satori/go.uuid"
 	. "github.com/volatiletech/sqlboiler/queries/qm"
 )
@@ -10,15 +11,15 @@ type Model interface {
 	GetID() *uuid.UUID
 }
 
-func ApplyBoilerFilters(args map[string]interface{}) (mods []QueryMod) {
+func ApplyBoilerFilters(cursorField string, args map[string]interface{}) (mods []QueryMod) {
 	first, last, after, before := ParseArgs(args)
 
 	if after != nil {
-		mods = append(mods, Where("id > ?", after))
+		mods = append(mods, Where(fmt.Sprintf("%s > ?", cursorField), after))
 	}
 
 	if before != nil {
-		mods = append(mods, Where("id < ?", before))
+		mods = append(mods, Where(fmt.Sprintf("%s < ?", cursorField), before))
 	}
 
 	if last != -1 {
@@ -32,7 +33,30 @@ func ApplyBoilerFilters(args map[string]interface{}) (mods []QueryMod) {
 	mods = append(mods, Limit(first))
 
 	return
+}
 
+func ApplyReverseBoilerFilters(cursorField string, args map[string]interface{}) (mods []QueryMod) {
+	first, last, after, before := ParseArgs(args)
+
+	if after != nil {
+		mods = append(mods, Where(fmt.Sprintf("%s < ?", cursorField), after))
+	}
+
+	if before != nil {
+		mods = append(mods, Where(fmt.Sprintf("%s > ?", cursorField), before))
+	}
+
+	if last != -1 {
+		panic("Last not implemented")
+	}
+
+	if first > 1000 {
+		first = 1000
+	}
+
+	mods = append(mods, Limit(first))
+
+	return
 }
 
 func ParseArgs(args map[string]interface{}) (first int, last int, after *uuid.UUID, before *uuid.UUID) {
