@@ -59,16 +59,16 @@ func ApplyReverseBoilerFilters(cursorField string, args map[string]interface{}) 
 	return
 }
 
-func ParseArgs(args map[string]interface{}) (first int, last int, after *uuid.UUID, before *uuid.UUID) {
+func ParseArgs(args map[string]interface{}) (first int, last int, after string, before string) {
 	first = 10
 	last = -1
 
 	if val, ok := args["After"]; ok {
-		after = FromCursorToUUID(val.(string))
+		after = FromCursorToBoiler(val.(string))
 	}
 
 	if val, ok := args["Before"]; ok {
-		before = FromCursorToUUID(val.(string))
+		before = FromCursorToBoiler(val.(string))
 	}
 
 	if val, ok := args["First"]; ok {
