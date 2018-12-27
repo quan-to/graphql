@@ -85,6 +85,10 @@ func FromCursorToBoiler(cursor string) string {
 	return string(sid)
 }
 
+func FromUUIDToCursor(id *uuid.UUID) string {
+	return base64.StdEncoding.EncodeToString(id.Bytes())
+}
+
 func FromCursorToUUID(cursor string) *uuid.UUID {
 	var sid, err = base64.StdEncoding.DecodeString(cursor)
 	if err != nil {
