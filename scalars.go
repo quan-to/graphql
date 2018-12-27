@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"fmt"
+	"github.com/volatiletech/null"
 	"math"
 	"strconv"
 	"time"
@@ -17,6 +18,8 @@ import (
 // they are internally represented as IEEE 754 doubles.
 func coerceInt(value interface{}) interface{} {
 	switch value := value.(type) {
+	case null.Bool, null.String, null.Time, null.Byte, null.Bytes, null.Float32, null.Float64, null.Int, null.Int8, null.Int16, null.Int32, null.Int64, null.Uint, null.Uint8, null.Uint16, null.Uint32, null.Uint64:
+		return MustGetBoilerNullableValue(GetBoilerNullableValue(value))
 	case bool:
 		if value == true {
 			return 1
@@ -170,6 +173,8 @@ var Int = NewScalar(ScalarConfig{
 
 func coerceFloat(value interface{}) interface{} {
 	switch value := value.(type) {
+	case null.Bool, null.String, null.Time, null.Byte, null.Bytes, null.Float32, null.Float64, null.Int, null.Int8, null.Int16, null.Int32, null.Int64, null.Uint, null.Uint8, null.Uint16, null.Uint32, null.Uint64:
+		return MustGetBoilerNullableValue(GetBoilerNullableValue(value))
 	case bool:
 		if value == true {
 			return 1.0
@@ -306,12 +311,18 @@ var Float = NewScalar(ScalarConfig{
 })
 
 func coerceString(value interface{}) interface{} {
+
 	if v, ok := value.(*string); ok {
 		if v == nil {
 			return nil
 		}
 		return *v
 	}
+	switch value.(type) {
+	case null.Bool, null.String, null.Time, null.Byte, null.Bytes, null.Float32, null.Float64, null.Int, null.Int8, null.Int16, null.Int32, null.Int64, null.Uint, null.Uint8, null.Uint16, null.Uint32, null.Uint64:
+		return MustGetBoilerNullableValue(GetBoilerNullableValue(value))
+	}
+
 	return fmt.Sprintf("%v", value)
 }
 
@@ -334,6 +345,8 @@ var String = NewScalar(ScalarConfig{
 
 func coerceBool(value interface{}) interface{} {
 	switch value := value.(type) {
+	case null.Bool, null.String, null.Time, null.Byte, null.Bytes, null.Float32, null.Float64, null.Int, null.Int8, null.Int16, null.Int32, null.Int64, null.Uint, null.Uint8, null.Uint16, null.Uint32, null.Uint64:
+		return MustGetBoilerNullableValue(GetBoilerNullableValue(value))
 	case bool:
 		return value
 	case *bool:
@@ -570,6 +583,8 @@ var DateTime = NewScalar(ScalarConfig{
 
 func coerceDecimal(value interface{}) interface{} {
 	switch value := value.(type) {
+	case null.Bool, null.String, null.Time, null.Byte, null.Bytes, null.Float32, null.Float64, null.Int, null.Int8, null.Int16, null.Int32, null.Int64, null.Uint, null.Uint8, null.Uint16, null.Uint32, null.Uint64:
+		return MustGetBoilerNullableValue(GetBoilerNullableValue(value))
 	case bool:
 		if value == true {
 			return decimal.NewFromFloat(1.0)
