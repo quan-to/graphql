@@ -14,11 +14,11 @@ type Model interface {
 func ApplyBoilerFilters(cursorField string, args map[string]interface{}) (mods []QueryMod) {
 	first, last, after, before := ParseArgs(args)
 
-	if after != nil {
+	if after != "" {
 		mods = append(mods, Where(fmt.Sprintf("%s > ?", cursorField), after))
 	}
 
-	if before != nil {
+	if before != "" {
 		mods = append(mods, Where(fmt.Sprintf("%s < ?", cursorField), before))
 	}
 
@@ -38,11 +38,11 @@ func ApplyBoilerFilters(cursorField string, args map[string]interface{}) (mods [
 func ApplyReverseBoilerFilters(cursorField string, args map[string]interface{}) (mods []QueryMod) {
 	first, last, after, before := ParseArgs(args)
 
-	if after != nil {
+	if after != "" {
 		mods = append(mods, Where(fmt.Sprintf("%s < ?", cursorField), after))
 	}
 
-	if before != nil {
+	if before != "" {
 		mods = append(mods, Where(fmt.Sprintf("%s > ?", cursorField), before))
 	}
 
