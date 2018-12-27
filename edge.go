@@ -119,7 +119,7 @@ func MakeEdges(nodes []interface{}, cursorFunc func(m interface{}) string) []Edg
 
 	for i := 0; i < len(nodes); i++ {
 		var value interface{}
-		value = GetBoilerNullableValue(nodes[i])
+		value, _ = GetBoilerNullableValue(nodes[i])
 		ret[i] = EdgeData{
 			Node:   value,
 			Cursor: cursorFunc(nodes[i]),
