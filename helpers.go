@@ -3,47 +3,22 @@ package graphql
 import (
 	"encoding/base64"
 	"github.com/satori/go.uuid"
-	"github.com/jinzhu/gorm"
+	. "github.com/volatiletech/sqlboiler/queries/qm"
 )
 
 type Model interface {
 	GetID() *uuid.UUID
 }
 
-// Not working
-func GetNodes(o interface{}) []interface{} {
-	obj := o.([]interface{})
-	gNodes := make([]interface{}, len(obj))
-	for i, v := range obj {
-		gNodes[i] = v
-	}
-
-	return gNodes
-}
-
-// Not working
-func GetCursors(o interface{}) (startCursor, endCursor string) {
-
-	obj := o.([]interface{})
-	if len(obj) > 0 {
-		v := obj[0]
-		startCursor = FromGormToCursor(v.(Model).GetID())
-		v = obj[len(obj)-1]
-		endCursor = FromGormToCursor(v.(Model).GetID())
-	}
-
-	return
-}
-
-func ApplyGormFilters(e *gorm.DB, args map[string]interface{}) (*gorm.DB) {
+func ApplyBoilerFilters(args map[string]interface{}) (mods []QueryMod) {
 	first, last, after, before := ParseArgs(args)
 
 	if after != nil {
-		e = e.Where("id > ?", after)
+		mods = append(mods, Where("id > ?", after))
 	}
 
 	if before != nil {
-		e = e.Where("id < ?", before)
+		mods = append(mods, Where("id < ?", before))
 	}
 
 	if last != -1 {
@@ -54,9 +29,9 @@ func ApplyGormFilters(e *gorm.DB, args map[string]interface{}) (*gorm.DB) {
 		first = 1000
 	}
 
-	e = e.Limit(first)
+	mods = append(mods, Limit(first))
 
-	return e
+	return
 
 }
 
@@ -65,11 +40,11 @@ func ParseArgs(args map[string]interface{}) (first int, last int, after *uuid.UU
 	last = -1
 
 	if val, ok := args["After"]; ok {
-		after = FromCursorToGorm(val.(string))
+		after = FromCursorToUUID(val.(string))
 	}
 
 	if val, ok := args["Before"]; ok {
-		before = FromCursorToGorm(val.(string))
+		before = FromCursorToUUID(val.(string))
 	}
 
 	if val, ok := args["First"]; ok {
@@ -97,11 +72,20 @@ func GetOutput(totalCount int64, startCursor string, endCursor string, edges []E
 	return
 }
 
-func FromGormToCursor(id *uuid.UUID) string {
-	return base64.StdEncoding.EncodeToString(id.Bytes())
+func FromBoilerToCursor(id string) string {
+	return base64.StdEncoding.EncodeToString([]byte(id))
 }
 
-func FromCursorToGorm(cursor string) *uuid.UUID {
+func FromCursorToBoiler(cursor string) string {
+	var sid, err = base64.StdEncoding.DecodeString(cursor)
+	if err != nil {
+		panic(err)
+	}
+
+	return string(sid)
+}
+
+func FromCursorToUUID(cursor string) *uuid.UUID {
 	var sid, err = base64.StdEncoding.DecodeString(cursor)
 	if err != nil {
 		panic(err)
