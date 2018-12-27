@@ -1,4 +1,4 @@
-# graphql [![CircleCI](https://circleci.com/gh/graphql-go/graphql/tree/master.svg?style=svg)](https://circleci.com/gh/graphql-go/graphql/tree/master) [![GoDoc](https://godoc.org/graphql.co/graphql?status.svg)](https://godoc.org/github.com/quan-to/graphql) [![Coverage Status](https://coveralls.io/repos/github/graphql-go/graphql/badge.svg?branch=master)](https://coveralls.io/github/graphql-go/graphql?branch=master) [![Join the chat at https://gitter.im/graphql-go/graphql](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/graphql-go/graphql?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+# graphql [![CircleCI](https://circleci.com/gh/quan-to/graphql/tree/master.svg?style=svg)](https://circleci.com/gh/quan-to/graphql/tree/master) [![GoDoc](https://godoc.org/graphql.co/graphql?status.svg)](https://godoc.org/github.com/quan-to/graphql) [![Coverage Status](https://coveralls.io/repos/github/quan-to/graphql/badge.svg?branch=master)](https://coveralls.io/github/quan-to/graphql?branch=master) [![Join the chat at https://gitter.im/quan-to/graphql](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/quan-to/graphql?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 An implementation of GraphQL in Go. Follows the official reference implementation [`graphql-js`](https://github.com/graphql/graphql-js).
 
@@ -65,8 +65,8 @@ For more complex examples, refer to the [examples/](https://github.com/quan-to/g
 ### Third Party Libraries
 | Name          | Author        | Description  |
 |:-------------:|:-------------:|:------------:|
-| [graphql-go-handler](https://github.com/quan-to/graphql-go-handler) | [Hafiz Ismail](https://github.com/sogko) | Middleware to handle GraphQL queries through HTTP requests. |
-| [graphql-relay-go](https://github.com/quan-to/graphql-relay-go) | [Hafiz Ismail](https://github.com/sogko) | Lib to construct a graphql-go server supporting react-relay. |
+| [quan-to-handler](https://github.com/quan-to/quan-to-handler) | [Hafiz Ismail](https://github.com/sogko) | Middleware to handle GraphQL queries through HTTP requests. |
+| [graphql-relay-go](https://github.com/quan-to/graphql-relay-go) | [Hafiz Ismail](https://github.com/sogko) | Lib to construct a quan-to server supporting react-relay. |
 | [golang-relay-starter-kit](https://github.com/sogko/golang-relay-starter-kit) | [Hafiz Ismail](https://github.com/sogko) | Barebones starting point for a Relay application with Golang GraphQL server. |
 | [dataloader](https://github.com/nicksrandall/dataloader) | [Nick Randall](https://github.com/nicksrandall) | [DataLoader](https://github.com/facebook/dataloader) implementation in Go. |
 
