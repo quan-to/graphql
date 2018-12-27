@@ -2,7 +2,6 @@ package graphql
 
 import (
 	"fmt"
-	"github.com/volatiletech/null"
 	"log"
 )
 
@@ -120,44 +119,7 @@ func MakeEdges(nodes []interface{}, cursorFunc func(m interface{}) string) []Edg
 
 	for i := 0; i < len(nodes); i++ {
 		var value interface{}
-		switch nodes[i].(type) {
-		case null.Bool:
-			value, _ = nodes[i].(null.Bool).Value()
-		case null.String:
-			value, _ = nodes[i].(null.String).Value()
-		case null.Time:
-			value, _ = nodes[i].(null.Time).Value()
-		case null.Byte:
-			value, _ = nodes[i].(null.Byte).Value()
-		case null.Bytes:
-			value, _ = nodes[i].(null.Bytes).Value()
-		case null.Float32:
-			value, _ = nodes[i].(null.Float32).Value()
-		case null.Float64:
-			value, _ = nodes[i].(null.Float64).Value()
-		case null.Int:
-			value, _ = nodes[i].(null.Int).Value()
-		case null.Int8:
-			value, _ = nodes[i].(null.Int8).Value()
-		case null.Int16:
-			value, _ = nodes[i].(null.Int16).Value()
-		case null.Int32:
-			value, _ = nodes[i].(null.Int32).Value()
-		case null.Int64:
-			value, _ = nodes[i].(null.Int64).Value()
-		case null.Uint:
-			value, _ = nodes[i].(null.Uint).Value()
-		case null.Uint8:
-			value, _ = nodes[i].(null.Uint8).Value()
-		case null.Uint16:
-			value, _ = nodes[i].(null.Uint16).Value()
-		case null.Uint32:
-			value, _ = nodes[i].(null.Uint32).Value()
-		case null.Uint64:
-			value, _ = nodes[i].(null.Uint64).Value()
-		default:
-			value = nodes[i]
-		}
+		value = GetBoilerNullableValue(nodes[i])
 		ret[i] = EdgeData{
 			Node:   value,
 			Cursor: cursorFunc(nodes[i]),
