@@ -1,14 +1,11 @@
 package graphql
 
 import (
-	"github.com/graphql-go/graphql"
 	"github.com/volatiletech/null"
 )
 
-func GetBoilerField(field *graphql.Field) graphql.Field {
-	field.Resolve = func(p graphql.ResolveParams) (interface{}, error) { return GetBoilerNullableValue(p.Source) }
-
-	return *field
+func MustGetBoilerNullableValue(i interface{}, _ error) interface{} {
+	return i
 }
 
 func GetBoilerNullableValue(v interface{}) (interface{}, error) {
