@@ -690,6 +690,8 @@ func coerceDecimal(value interface{}) interface{} {
 			return nil
 		}
 		return coerceDecimal(*value)
+	case decimal.Decimal, *decimal.Decimal:
+		return value
 	}
 
 	// If the value cannot be transformed into a decimal, return nil instead of '0.0'
