@@ -42,7 +42,7 @@ func Execute(p ExecuteParams) (result *Result) {
 	go func(out chan<- *Result, done <-chan struct{}) {
 		defer func() {
 			if err := recover(); err != nil {
-				result.Errors = append(result.Errors, errFormatter(err.(error)))
+				result.AppendErrors(gqlerrors.FormatError(err.(error)))
 			}
 			select {
 			case out <- result:
@@ -61,7 +61,7 @@ func Execute(p ExecuteParams) (result *Result) {
 		})
 
 		if err != nil {
-			result.Errors = append(result.Errors, errFormatter(err))
+			result.AppendErrors(gqlerrors.FormatError(err))
 			return
 		}
 
@@ -74,7 +74,7 @@ func Execute(p ExecuteParams) (result *Result) {
 
 	select {
 	case <-ctx.Done():
-		result.Errors = append(result.Errors, errFormatter(ctx.Err()))
+		result.AppendErrors(gqlerrors.FormatError(ctx.Err()))
 	case r := <-resultChannel:
 		result = r
 	}
@@ -185,7 +185,7 @@ func executeOperation(p executeOperationParams) *Result {
 // Extracts the root type of the operation from the schema.
 func getOperationRootType(schema Schema, operation ast.Definition) (*Object, error) {
 	if operation == nil {
-		return nil, errors.New("Can only execute queries and mutations")
+		return nil, errors.New("Can only execute queries, mutations and subscription")
 	}
 
 	switch operation.GetOperation() {
@@ -193,7 +193,7 @@ func getOperationRootType(schema Schema, operation ast.Definition) (*Object, err
 		return schema.QueryType(), nil
 	case ast.OperationTypeMutation:
 		mutationType := schema.MutationType()
-		if mutationType.PrivateName == "" {
+		if mutationType == nil || mutationType.PrivateName == "" {
 			return nil, gqlerrors.NewError(
 				"Schema is not configured for mutations",
 				[]ast.Node{operation},
@@ -206,7 +206,7 @@ func getOperationRootType(schema Schema, operation ast.Definition) (*Object, err
 		return mutationType, nil
 	case ast.OperationTypeSubscription:
 		subscriptionType := schema.SubscriptionType()
-		if subscriptionType.PrivateName == "" {
+		if subscriptionType == nil || subscriptionType.PrivateName == "" {
 			return nil, gqlerrors.NewError(
 				"Schema is not configured for subscriptions",
 				[]ast.Node{operation},
@@ -973,6 +973,22 @@ func DefaultResolveFn(p ResolveParams) (interface{}, error) {
 			}
 		}
 		return property, nil
+	}
+
+	// Try accessing as map via reflection
+	if r := reflect.ValueOf(p.Source); r.Kind() == reflect.Map && r.Type().Key().Kind() == reflect.String {
+		val := r.MapIndex(reflect.ValueOf(p.Info.FieldName))
+		if val.IsValid() {
+			property := val.Interface()
+			if val.Type().Kind() == reflect.Func {
+				// try type casting the func to the most basic func signature
+				// for more complex signatures, user have to define ResolveFn
+				if propertyFn, ok := property.(func() interface{}); ok {
+					return propertyFn(), nil
+				}
+			}
+			return property, nil
+		}
 	}
 
 	// last resort, return nil
