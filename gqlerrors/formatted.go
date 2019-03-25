@@ -61,9 +61,17 @@ func FormatError(err error) FormattedError {
 }
 
 func FormatErrors(errs ...error) []FormattedError {
-	formattedErrors := []FormattedError{}
+	formattedErrors := make([]FormattedError, 0)
 	for _, err := range errs {
 		formattedErrors = append(formattedErrors, FormatError(err))
+	}
+	return formattedErrors
+}
+
+func FormatErrorsFunc(f func (err error) FormattedError, errs ...error) []FormattedError {
+	formattedErrors := make([]FormattedError, 0)
+	for _, err := range errs {
+		formattedErrors = append(formattedErrors, f(err))
 	}
 	return formattedErrors
 }

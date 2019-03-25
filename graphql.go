@@ -31,17 +31,21 @@ type Params struct {
 	// Context may be provided to pass application-specific per-request
 	// information to resolve functions.
 	Context context.Context
+
+	// CustomErrorFormatter may be a function that processes errors individually
+	// to resolve fields or to return different content
+	CustomErrorFomatter func(err error) gqlerrors.FormattedError
 }
 
 func Do(p Params) *Result {
-	source := source.NewSource(&source.Source{
+	src := source.NewSource(&source.Source{
 		Body: []byte(p.RequestString),
 		Name: "GraphQL request",
 	})
-	AST, err := parser.Parse(parser.ParseParams{Source: source})
+	AST, err := parser.Parse(parser.ParseParams{Source: src})
 	if err != nil {
 		return &Result{
-			Errors: gqlerrors.FormatErrors(err),
+			Errors: gqlerrors.FormatErrorsFunc(p.CustomErrorFomatter, err),
 		}
 	}
 	validationResult := ValidateDocument(&p.Schema, AST, nil)
@@ -53,11 +57,12 @@ func Do(p Params) *Result {
 	}
 
 	return Execute(ExecuteParams{
-		Schema:        p.Schema,
-		Root:          p.RootObject,
-		AST:           AST,
-		OperationName: p.OperationName,
-		Args:          p.VariableValues,
-		Context:       p.Context,
+		Schema:               p.Schema,
+		Root:                 p.RootObject,
+		AST:                  AST,
+		OperationName:        p.OperationName,
+		Args:                 p.VariableValues,
+		Context:              p.Context,
+		CustomErrorFormatter: p.CustomErrorFomatter,
 	})
 }
