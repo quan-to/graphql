@@ -1,1 +1,1 @@
-module github.com/graphql-go/graphql
+module github.com/quan-to/graphql
